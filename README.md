@@ -1,8 +1,4 @@
-## Problem Solving game
-### subject LOL
-
-
-#### This is problem editor application
+#### This is quiz maker application
 
 ##### requirements
 - visual studio 2017
