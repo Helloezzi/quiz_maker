@@ -1,12 +1,12 @@
-﻿<Window x:Class="ProblemEditor.MainWindow"
+﻿<Window x:Class="QuizMaker.MainWindow"
         xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
         xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
         xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
         xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
         xmlns:ip="http://metro.mahapps.com/winfx/xaml/iconpacks"
-        xmlns:local="clr-namespace:ProblemEditor"
+        xmlns:local="clr-namespace:QuizMaker"
         mc:Ignorable="d"
-        Title="Problem Editor" Height="450" Width="800">
+        Title="Quiz Maker" Height="450" Width="800" WindowStartupLocation="CenterScreen">
     <Window.Resources>
         <HierarchicalDataTemplate x:Key="treeviewTemplate" ItemsSource="{Binding Children}">
             <StackPanel Orientation="Horizontal">
@@ -18,7 +18,7 @@
             <local:ChapterControl/>
         </DataTemplate>
         <DataTemplate x:Key="View2Template" DataType="{x:Type local:MainViewModel}">
-            <local:ProblemControl/>
+            <local:QuizControl/>
         </DataTemplate>
     </Window.Resources>
     <Grid>
@@ -33,6 +33,7 @@
         </Grid.ColumnDefinitions>
         <Grid Grid.Row="0" Grid.ColumnSpan="2">
             <ToolBar>
+                <Button Content="{ip:BoxIcons Kind=RegularNews}" Command="{Binding NewFileCommand}" Margin="5, 0, 0, 0" ToolTip="New File"/>
                 <Button Content="{ip:BoxIcons Kind=RegularFolderOpen}" Command="{Binding LoadFileCommand}" Margin="5, 0, 0, 0" ToolTip="Load File"/>
                 <Button Content="{ip:BoxIcons Kind=SolidSave}" Command="{Binding SaveFileCommand}" Margin="5, 0, 0, 0" ToolTip="Save File"/>
                 <Separator></Separator>

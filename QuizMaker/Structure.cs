@@ -4,7 +4,7 @@ using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 
-namespace ProblemEditor
+namespace QuizMaker
 {
     public enum ProblemType
     {
@@ -15,6 +15,6 @@ namespace ProblemEditor
     public enum ElementType
     {
         Chapter,
-        Problem,
+        Quiz,
     }
 }

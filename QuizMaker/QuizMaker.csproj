@@ -134,6 +134,7 @@
       <DependentUpon>QuizControl.xaml</DependentUpon>
     </Compile>
     <Compile Include="RelayCommand.cs" />
+    <Compile Include="SaveFilaManager.cs" />
     <Compile Include="Structure.cs" />
     <Compile Include="UserData.cs" />
     <Page Include="ChapterControl.xaml">

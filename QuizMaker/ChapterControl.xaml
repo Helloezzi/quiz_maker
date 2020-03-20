@@ -1,11 +1,11 @@
-﻿<UserControl x:Class="ProblemEditor.ChapterControl"
+﻿<UserControl x:Class="QuizMaker.ChapterControl"
              xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
              xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
              xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006" 
              xmlns:d="http://schemas.microsoft.com/expression/blend/2008" 
-             xmlns:local="clr-namespace:ProblemEditor"
+             xmlns:local="clr-namespace:QuizMaker"
              mc:Ignorable="d">
     <Grid>
-        <Label Content="{Binding TestName}"/>
+        <Label Content="{Binding SelectTitle}"/>
     </Grid>
 </UserControl>

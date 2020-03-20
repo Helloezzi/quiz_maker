@@ -4,9 +4,10 @@ using System.Collections.ObjectModel;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
+using System.Windows;
 using System.Windows.Input;
 
-namespace ProblemEditor
+namespace QuizMaker
 {
     public class MainViewModel : BaseViewModel
     {
@@ -46,20 +47,39 @@ namespace ProblemEditor
         public ICommand DeleteCommand { get; }
         public ICommand SelectCommand { get; }
         public ICommand SwitchViewCommand { get; }
+        public ICommand NewFileCommand { get; }
+        public ICommand QuizContentChangeCommand { get; }
 
+        private string currentContent;
+        public string CurrentContent
+        {
+            get { return currentContent; }
+            set
+            {
+                currentContent = value;
+                
+                if (CurrentSelectItem is Quiz quiz)
+                {
+                    quiz.Contents = value;
+                }
+
+                OnPropertyChanged("CurrentContent");
+            }
+        }
+        
         private BaseItem CurrentSelectItem { get; set; }
 
-        private string testName;
-        public string TestName
+        private string selectTitle;
+        public string SelectTitle
         {
             get
             {
-                return testName;
+                return selectTitle;
             }
             set
             {
-                testName = value;
-                OnPropertyChanged("TestName");
+                selectTitle = value;
+                OnPropertyChanged("SelectTitle");
             }
         }
 
@@ -75,11 +95,34 @@ namespace ProblemEditor
             DeleteCommand = new RelayCommand<object>(p => DeleteNode((BaseItem)p));
             SelectCommand = new RelayCommand<object>(p => SelectNode((BaseItem)p));
             SwitchViewCommand = new RelayCommand<object>(p => SetSwitchView());
+            NewFileCommand = new RelayCommand<object>(p => NewFile());
+            QuizContentChangeCommand = new RelayCommand<object>(p => QuizContentChange((string)p));
+        }
+
+        private void QuizContentChange(string content)
+        {
+            if (CurrentSelectItem is Quiz quiz)
+            {
+                quiz.Contents = content;                
+            }
+        }
+
+        private void NewFile()
+        {
+            //Window parent = Window.GetWindow(cr) as Window;
+            //MessageBoxResult result = MessageBox.Show(parent, cr.Message, cr.Caption, cr.MsgBoxButton, cr.MsgBoxImage);
+            Window owner = Application.Current.MainWindow;
+            if (MessageBox.Show(owner, "새파일 생성", "정말 지울거임?", MessageBoxButton.OKCancel) == MessageBoxResult.OK)
+            {
+                SelectTitle = "";
+                CurrentSelectItem = null;
+                TreeviewItemCollection.Clear();
+            }
         }
 
         private void SetSwitchView()
         {
-            Console.WriteLine("111");
+            Console.WriteLine("change view");
         }
 
         public void AddNode(BaseItem parent = null)
@@ -113,8 +156,8 @@ namespace ProblemEditor
                 Quiz child = new Quiz();
                 child.Id = Guid.NewGuid().ToString();
                 child.Order = chapter.Children.Count + 1;
-                child.Name = "Problem";
-                child.Type = ElementType.Problem;
+                child.Name = "Quiz";
+                child.Type = ElementType.Quiz;
                 child.ParentID = parent.Id;
                 chapter.Children.Add(child);
             }
@@ -127,18 +170,19 @@ namespace ProblemEditor
             if (item is Chapter chapter)
             {
                 SwitchView = 0;
-                TestName = $"{CurrentSelectItem.Name}({CurrentSelectItem.Order})";
+                SelectTitle = $"{CurrentSelectItem.Name}({CurrentSelectItem.Order})";
             }
             else
             {
                 SwitchView = 1;
 
-                Quiz problem = (Quiz)item;
-                BaseItem parent = FindItem(problem.ParentID);
+                Quiz quiz = (Quiz)item;
+                BaseItem parent = FindItem(quiz.ParentID);
 
-                TestName = $"{parent.Name}({parent.Order})";
-                TestName += " - ";
-                TestName += $"{CurrentSelectItem.Name}({CurrentSelectItem.Order})";
+                SelectTitle = $"{parent.Name}({parent.Order})";
+                SelectTitle += " - ";
+                SelectTitle += $"{CurrentSelectItem.Name}({CurrentSelectItem.Order})";
+                CurrentContent = quiz.Contents;
             }
         }
 
@@ -179,17 +223,23 @@ namespace ProblemEditor
             {
                 string file = openFileDialog.FileName;
                 Console.WriteLine(file);
-                ObservableCollection<Chapter> collection = JasonManager.Import(file);
-                foreach(Chapter chapter in collection)
-                {
-                    TreeviewItemCollection.Add(chapter);
-                }
+                ObservableCollection<BaseItem> collection = JasonManager.Import(file);
+                TreeviewItemCollection = collection;
             }
         }
 
         private void SaveFile()
         {
-            JasonManager.Export(TreeviewItemCollection);
+            Microsoft.Win32.SaveFileDialog dlg = new Microsoft.Win32.SaveFileDialog();
+            dlg.FileName = "json file";
+            dlg.DefaultExt = ".json";
+            dlg.Filter = "json documents (.json)|*.json";
+
+            Nullable<bool> result = dlg.ShowDialog();
+            if (result == true)
+            {
+                JasonManager.Export( dlg.FileName, TreeviewItemCollection);
+            }               
         }
         
         private int GetChapterCount()

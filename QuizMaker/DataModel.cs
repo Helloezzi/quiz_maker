@@ -3,8 +3,9 @@ using System.Collections.Generic;
 using System.Collections.ObjectModel;
 using System.ComponentModel;
 using System.Runtime.CompilerServices;
+using Newtonsoft.Json;
 
-namespace ProblemEditor
+namespace QuizMaker
 {
     [Serializable]
     public class BaseItem : INotifyPropertyChanged
@@ -46,6 +47,7 @@ namespace ProblemEditor
         public string Description;
 
         private ObservableCollection<BaseItem> children = new ObservableCollection<BaseItem>();
+        [JsonIgnore]
         public ObservableCollection<BaseItem> Children
         {
             get { return children; }

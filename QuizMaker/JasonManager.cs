@@ -3,49 +3,70 @@ using Newtonsoft.Json;
 using System.IO;
 using System;
 using Newtonsoft.Json.Linq;
+using System.Collections.Generic;
 
-namespace ProblemEditor
+namespace QuizMaker
 {
     public class JasonManager
     {
         public static string FilePath = Environment.CurrentDirectory + "";
 
-        public static void Export(ObservableCollection<BaseItem> collecion)
+        public static void Export(string filePath, ObservableCollection<BaseItem> collecion)
         {
-            string json = JsonConvert.SerializeObject(collecion);
-            string path = FilePath + $"\\{DateTime.Now.ToString("MMddyyyy_HHmmss")}.json";
-            File.WriteAllText(path, json);
+            List<BaseItem> listTemp = new List<BaseItem>();
+
+            foreach(BaseItem item in collecion)
+            {
+                listTemp.Add(item);
+
+                if(item.Children.Count > 0)
+                {
+                    foreach(BaseItem child in item.Children)
+                    {
+                        listTemp.Add(child);
+                    }
+                }
+            }
+
+            string json = JsonConvert.SerializeObject(listTemp);
+            //string path = FilePath + $"\\{DateTime.Now.ToString("MMddyyyy_HHmmss")}.json";
+            File.WriteAllText(filePath, json);
         }
 
-        public static ObservableCollection<Chapter> Import(string filePath)
+        public static ObservableCollection<BaseItem> Import(string filePath)
         {
             string json = File.ReadAllText(filePath);
 
-            //JArray jArray = JArray.Parse(json) as JArray;
-            //foreach(JObject obj in jArray)
-            //{
-            //    string children = obj.Value<string>("Children");
-                
-            //    //Chapter temp = obj.ToObject<Chapter>();
+            ObservableCollection<BaseItem> result = new ObservableCollection<BaseItem>();
 
-            //    //if (temp.Children.Count > 0)
-            //    {
-            //        Console.WriteLine("111");
-            //    }
-                
+            JArray jArray = JArray.Parse(json) as JArray;
+            foreach(JObject obj in jArray)
+            {
+                int type = obj.Value<int>("Type");                
+                if (type == (int)ElementType.Chapter)
+                {
+                    Chapter temp = obj.ToObject<Chapter>();
+                    result.Add(temp);
+                }
+            }
 
-            //    //if (obj is Chapter chapter)
-            //    {
-            //        Console.WriteLine("111");
-            //    }
+            foreach (JObject obj in jArray)
+            {
+                int type = obj.Value<int>("Type");
+                if (type == (int)ElementType.Quiz)
+                {
+                    Quiz child = obj.ToObject<Quiz>();
 
-            //    //if (obj is Problem problem)
-            //    {
-            //        Console.WriteLine("111");
-            //    }
-            //}
-
-            return JsonConvert.DeserializeObject<ObservableCollection<Chapter>>(json);
+                    foreach(BaseItem parent in result)
+                    {
+                        if (parent.Id == child.ParentID)
+                        {
+                            parent.Children.Add(child);
+                        }
+                    }
+                }
+            }
+            return result;
         }
     }
 }
