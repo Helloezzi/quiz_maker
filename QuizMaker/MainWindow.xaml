@@ -15,15 +15,18 @@
             </StackPanel>
         </HierarchicalDataTemplate>
         <DataTemplate x:Key="View1Template" DataType="{x:Type local:MainViewModel}">
-            <local:ChapterControl/>
+            <local:EmptyControl/>
         </DataTemplate>
         <DataTemplate x:Key="View2Template" DataType="{x:Type local:MainViewModel}">
-            <local:QuizControl/>
+            <local:ChapterControl/>
         </DataTemplate>
+        <DataTemplate x:Key="View3Template" DataType="{x:Type local:MainViewModel}">
+            <local:QuizControl/>
+        </DataTemplate>        
     </Window.Resources>
     <Grid>
         <Grid.RowDefinitions>
-            <RowDefinition Height="30"/>
+            <RowDefinition Height="40"/>
             <RowDefinition Height="*"/>
             <RowDefinition Height="*"/>
         </Grid.RowDefinitions>
@@ -37,7 +40,8 @@
                 <Button Content="{ip:BoxIcons Kind=RegularFolderOpen}" Command="{Binding LoadFileCommand}" Margin="5, 0, 0, 0" ToolTip="Load File"/>
                 <Button Content="{ip:BoxIcons Kind=SolidSave}" Command="{Binding SaveFileCommand}" Margin="5, 0, 0, 0" ToolTip="Save File"/>
                 <Separator></Separator>
-                <Button Content="{ip:BoxIcons Kind=RegularBookAdd}" Command="{Binding CreateChapterCommand}" ToolTip="Create Chapter"/>
+                <Button Content="{ip:BoxIcons Kind=RegularBookAdd}" Command="{Binding CreateChapterCommand}" Margin="5, 0, 0, 0" ToolTip="Create Chapter"/>
+                <Button Content="{ip:BoxIcons Kind=RegularQuestionMark}" Command="{Binding CreateQuizCommand}" Margin="5, 0, 0, 0" ToolTip="Create Quiz"/>
             </ToolBar>
         </Grid>
         <Grid Grid.Row="1" Grid.RowSpan="2">
@@ -45,6 +49,7 @@
                 <TreeView x:Name="MyTreeview"
                           MouseRightButtonUp="TreeView_MouseRightButtonUp"
                           SelectedItemChanged="MyTreeview_SelectedItemChanged"
+                          MouseLeftButtonDown="MyTreeview_MouseLeftButtonDown"
                           ItemsSource="{Binding TreeviewItemCollection}"
                           ItemTemplate="{StaticResource treeviewTemplate}">
                     <TreeView.ItemContainerStyle>
@@ -55,7 +60,7 @@
                 </TreeView>
             </ScrollViewer>            
         </Grid>
-        <Grid Grid.Row="1" Grid.Column="1">
+        <Grid Grid.Row="1" Grid.RowSpan="2" Grid.Column="1">
             <ContentControl>
                 <ContentControl.Style>
                     <Style TargetType="{x:Type ContentControl}">
@@ -63,6 +68,9 @@
                         <Style.Triggers>
                             <DataTrigger Binding="{Binding SwitchView}" Value="1">
                                 <Setter Property="ContentTemplate" Value="{StaticResource View2Template}" />
+                            </DataTrigger>
+                            <DataTrigger Binding="{Binding SwitchView}" Value="2">
+                                <Setter Property="ContentTemplate" Value="{StaticResource View3Template}" />
                             </DataTrigger>
                         </Style.Triggers>
                     </Style>

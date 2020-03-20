@@ -1,6 +1,7 @@
 ﻿using System.Windows;
 using System.Windows.Controls;
 using System.Windows.Input;
+using System;
 
 namespace QuizMaker
 {
@@ -23,20 +24,30 @@ namespace QuizMaker
             if (treeview.SelectedItem == null)
                 return;
 
+            BaseItem item = (BaseItem)treeview.SelectedItem;
             // Context menu create
             ContextMenu contextMenu = new ContextMenu();
+            if (item.Type == ElementType.Chapter)
+            {                
+                MenuItem add = new MenuItem();
+                add.Header = "Add Quiz";
+                add.Click += AddNodeClick;
 
-            MenuItem add = new MenuItem();
-            add.Header = "Add Problem";
-            add.Click += AddNodeClick;
+                MenuItem delete = new MenuItem();
+                delete.Header = "Delete chapter";
+                delete.Click += Delete_Click;
 
-            MenuItem delete = new MenuItem();
-            delete.Header = "Delete Node";
-            delete.Click += Delete_Click;
+                contextMenu.Items.Add(add);
+                contextMenu.Items.Add(delete);                
+            }
+            else if (item.Type == ElementType.Quiz)
+            {
+                MenuItem delete = new MenuItem();
+                delete.Header = "Delete quiz";
+                delete.Click += Delete_Click;
 
-            contextMenu.Items.Add(add);
-            contextMenu.Items.Add(delete);
-
+                contextMenu.Items.Add(delete);
+            }
             treeview.ContextMenu = contextMenu;
         }
 
@@ -78,6 +89,20 @@ namespace QuizMaker
                 model.SelectCommand?.Execute((BaseItem)MyTreeview.SelectedItem);
             }
             
+        }
+
+        private void MyTreeview_MouseLeftButtonDown(object sender, MouseButtonEventArgs e)
+        {
+            //Console.WriteLine("111");
+            TreeView tv = (TreeView)sender;
+            if (tv != null)
+            {
+                BaseItem item = (BaseItem)tv.SelectedItem;
+                if (item != null)
+                {
+                    //item.IsSelected = false;
+                }
+            }
         }
     }
 }

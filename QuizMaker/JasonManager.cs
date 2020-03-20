@@ -11,17 +11,17 @@ namespace QuizMaker
     {
         public static string FilePath = Environment.CurrentDirectory + "";
 
-        public static void Export(string filePath, ObservableCollection<BaseItem> collecion)
+        public static void Export(string filePath, ObservableCollection<TreeNode> collecion)
         {
-            List<BaseItem> listTemp = new List<BaseItem>();
+            List<TreeNode> listTemp = new List<TreeNode>();
 
-            foreach(BaseItem item in collecion)
+            foreach(TreeNode item in collecion)
             {
                 listTemp.Add(item);
 
                 if(item.Children.Count > 0)
                 {
-                    foreach(BaseItem child in item.Children)
+                    foreach(TreeNode child in item.Children)
                     {
                         listTemp.Add(child);
                     }
@@ -33,11 +33,11 @@ namespace QuizMaker
             File.WriteAllText(filePath, json);
         }
 
-        public static ObservableCollection<BaseItem> Import(string filePath)
+        public static ObservableCollection<TreeNode> Import(string filePath)
         {
             string json = File.ReadAllText(filePath);
 
-            ObservableCollection<BaseItem> result = new ObservableCollection<BaseItem>();
+            ObservableCollection<TreeNode> result = new ObservableCollection<TreeNode>();
 
             JArray jArray = JArray.Parse(json) as JArray;
             foreach(JObject obj in jArray)
@@ -57,7 +57,7 @@ namespace QuizMaker
                 {
                     Quiz child = obj.ToObject<Quiz>();
 
-                    foreach(BaseItem parent in result)
+                    foreach(TreeNode parent in result)
                     {
                         if (parent.Id == child.ParentID)
                         {

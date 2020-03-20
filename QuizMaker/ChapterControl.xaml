@@ -4,8 +4,14 @@
              xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006" 
              xmlns:d="http://schemas.microsoft.com/expression/blend/2008" 
              xmlns:local="clr-namespace:QuizMaker"
+             xmlns:ip="http://metro.mahapps.com/winfx/xaml/iconpacks"
              mc:Ignorable="d">
     <Grid>
-        <Label Content="{Binding SelectTitle}"/>
+        <Grid.RowDefinitions>
+            <RowDefinition Height="30"/>
+            <RowDefinition Height="*"/>
+        </Grid.RowDefinitions>
+        <Label Grid.Row="0" Content="{Binding SelectTitle}"/>
+        <Button Grid.Row="1" Content="{ip:BoxIcons Kind=RegularQuestionMark}" Command="{Binding CreateQuizCommand}" ToolTip="Create Quiz" Width="80" Height="40"/>
     </Grid>
 </UserControl>

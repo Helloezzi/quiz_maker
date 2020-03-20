@@ -13,8 +13,8 @@ namespace QuizMaker
     {
         public static MainViewModel Instance;
 
-        public ObservableCollection<BaseItem> treeviewItemCollection;
-        public ObservableCollection<BaseItem> TreeviewItemCollection
+        public ObservableCollection<TreeNode> treeviewItemCollection;
+        public ObservableCollection<TreeNode> TreeviewItemCollection
         {
             get
             {
@@ -44,11 +44,13 @@ namespace QuizMaker
         public ICommand LoadFileCommand { get; }
         public ICommand SaveFileCommand { get; }
         public ICommand CreateChapterCommand { get; }
+        public ICommand CreateQuizCommand { get; }
         public ICommand DeleteCommand { get; }
         public ICommand SelectCommand { get; }
         public ICommand SwitchViewCommand { get; }
         public ICommand NewFileCommand { get; }
         public ICommand QuizContentChangeCommand { get; }
+        public ICommand AnswerSelectedCommand { get; }
 
         private string currentContent;
         public string CurrentContent
@@ -56,18 +58,34 @@ namespace QuizMaker
             get { return currentContent; }
             set
             {
-                currentContent = value;
-                
+                currentContent = value;                
                 if (CurrentSelectItem is Quiz quiz)
                 {
-                    quiz.Contents = value;
+                    quiz.Content = value;
                 }
-
                 OnPropertyChanged("CurrentContent");
             }
         }
-        
-        private BaseItem CurrentSelectItem { get; set; }
+
+        private QuizType currentQuizType;
+        public QuizType CurrentQuizType
+        {
+            get
+            {
+                return currentQuizType;
+            }
+            set
+            {
+                currentQuizType = value;
+                if (CurrentSelectItem is Quiz quiz)
+                {
+                    quiz.QuizType = value;
+                }
+                OnPropertyChanged("CurrentQuizType");
+            }
+        }
+
+        private TreeNode CurrentSelectItem { get; set; }
 
         private string selectTitle;
         public string SelectTitle
@@ -83,27 +101,49 @@ namespace QuizMaker
             }
         }
 
+        private List<Answer> listCurrentAnswer;
+        public List<Answer> ListCurrentAnswer
+        {
+            get
+            {
+                return listCurrentAnswer;
+            }
+            set
+            {
+                listCurrentAnswer = value;
+                OnPropertyChanged("ListCurrentAnswer");
+            }
+        }
+
         public MainViewModel()
         {
-            Instance = this;
+            Instance = this;            
 
-            TreeviewItemCollection = new ObservableCollection<BaseItem>();
+            TreeviewItemCollection = new ObservableCollection<TreeNode>();
+            ListCurrentAnswer = new List<Answer>();
 
             LoadFileCommand = new RelayCommand<object>(p => LoadFile());
             SaveFileCommand = new RelayCommand<object>(p => SaveFile());
             CreateChapterCommand = new RelayCommand<object>(p => AddChapter());
-            DeleteCommand = new RelayCommand<object>(p => DeleteNode((BaseItem)p));
-            SelectCommand = new RelayCommand<object>(p => SelectNode((BaseItem)p));
+            CreateQuizCommand = new RelayCommand<object>(p => AddChild());
+            DeleteCommand = new RelayCommand<object>(p => DeleteNode((TreeNode)p));
+            SelectCommand = new RelayCommand<object>(p => SelectNode((TreeNode)p));
             SwitchViewCommand = new RelayCommand<object>(p => SetSwitchView());
             NewFileCommand = new RelayCommand<object>(p => NewFile());
             QuizContentChangeCommand = new RelayCommand<object>(p => QuizContentChange((string)p));
+            AnswerSelectedCommand = new RelayCommand<object>(p => AnswerSelect((object)p));
+        }
+        
+        private void AnswerSelect(object sender)
+        {
+            Console.WriteLine("111");
         }
 
         private void QuizContentChange(string content)
         {
             if (CurrentSelectItem is Quiz quiz)
             {
-                quiz.Contents = content;                
+                quiz.Content = content;                
             }
         }
 
@@ -114,15 +154,25 @@ namespace QuizMaker
             Window owner = Application.Current.MainWindow;
             if (MessageBox.Show(owner, "새파일 생성", "정말 지울거임?", MessageBoxButton.OKCancel) == MessageBoxResult.OK)
             {
+                SwitchView = (int)ElementType.None;
                 SelectTitle = "";
                 CurrentSelectItem = null;
+                CurrentContent = "";
                 TreeviewItemCollection.Clear();
+
+                SaveFilaManager.Instance.FilePath = "";
+                SaveFilaManager.Instance.IsNewFile = true;
             }
         }
 
         private void SetSwitchView()
         {
             Console.WriteLine("change view");
+        }
+
+        public void AddChild()
+        {
+            AddChild(CurrentSelectItem);
         }
 
         public void AddNode(BaseItem parent = null)
@@ -158,37 +208,54 @@ namespace QuizMaker
                 child.Order = chapter.Children.Count + 1;
                 child.Name = "Quiz";
                 child.Type = ElementType.Quiz;
+                child.QuizType = QuizType.MultipleChoice_x4;
                 child.ParentID = parent.Id;
+
+                for (int i = 0; i < 4; i++)
+                {
+                    Answer asw = new Answer();
+                    asw.ParentID = child.Id;
+                    asw.Id = Guid.NewGuid().ToString();
+                    asw.IsCorrect = false;
+                    asw.Order = i + 1;
+                    asw.Type = ElementType.Answer;
+                    child.ListAnswer.Add(asw);
+                }
                 chapter.Children.Add(child);
             }
         }
 
-        private void SelectNode(BaseItem item)
+        private void SelectNode(TreeNode item)
         {
             CurrentSelectItem = item;
 
             if (item is Chapter chapter)
             {
-                SwitchView = 0;
+                // click chapter
+                SwitchView = (int)ElementType.Chapter;
                 SelectTitle = $"{CurrentSelectItem.Name}({CurrentSelectItem.Order})";
             }
-            else
+            else if (item is Quiz quiz)
             {
-                SwitchView = 1;
-
-                Quiz quiz = (Quiz)item;
+                // click quiz
+                SwitchView = (int)ElementType.Quiz;
                 BaseItem parent = FindItem(quiz.ParentID);
-
                 SelectTitle = $"{parent.Name}({parent.Order})";
                 SelectTitle += " - ";
                 SelectTitle += $"{CurrentSelectItem.Name}({CurrentSelectItem.Order})";
-                CurrentContent = quiz.Contents;
+                CurrentQuizType = quiz.QuizType;
+                CurrentContent = quiz.Content;
+                ListCurrentAnswer = quiz.ListAnswer;
+            }
+            else
+            {
+                SwitchView = (int)ElementType.None;
             }
         }
 
-        private void DeleteNode(BaseItem item)
+        private void DeleteNode(TreeNode item)
         {
-            foreach(BaseItem parent in TreeviewItemCollection)
+            foreach(TreeNode parent in TreeviewItemCollection)
             {
                 if (parent == item)
                 {
@@ -223,22 +290,36 @@ namespace QuizMaker
             {
                 string file = openFileDialog.FileName;
                 Console.WriteLine(file);
-                ObservableCollection<BaseItem> collection = JasonManager.Import(file);
+                ObservableCollection<TreeNode> collection = JasonManager.Import(file);
                 TreeviewItemCollection = collection;
+
+                SaveFilaManager.Instance.FilePath = file;
+                SaveFilaManager.Instance.IsNewFile = false;
             }
         }
 
         private void SaveFile()
         {
+            if (SaveFilaManager.Instance.IsNewFile == false)
+            {
+                //Console.WriteLine(CurrentContent);                
+
+                JasonManager.Export(SaveFilaManager.Instance.FilePath, treeviewItemCollection);
+                return;
+            }
+
             Microsoft.Win32.SaveFileDialog dlg = new Microsoft.Win32.SaveFileDialog();
-            dlg.FileName = "json file";
+            //dlg.FileName = "json file";
             dlg.DefaultExt = ".json";
             dlg.Filter = "json documents (.json)|*.json";
 
             Nullable<bool> result = dlg.ShowDialog();
             if (result == true)
             {
-                JasonManager.Export( dlg.FileName, TreeviewItemCollection);
+                JasonManager.Export(dlg.FileName, TreeviewItemCollection);
+
+                SaveFilaManager.Instance.FilePath = dlg.FileName;
+                SaveFilaManager.Instance.IsNewFile = false;
             }               
         }
         
@@ -257,7 +338,7 @@ namespace QuizMaker
 
         private BaseItem FindItem(string id)
         {
-            foreach(BaseItem item in treeviewItemCollection)
+            foreach(TreeNode item in treeviewItemCollection)
             {
                 if (item.Id == id)
                 {
@@ -280,14 +361,14 @@ namespace QuizMaker
         private void Sort()
         {
             int count = 1;
-            foreach(BaseItem item in TreeviewItemCollection)
+            foreach(TreeNode item in TreeviewItemCollection)
             {
                 if (item is Chapter chapter)
                 {
                     chapter.Order = count++;
                 }
 
-                if (item is Quiz problem)
+                if (item is Quiz quiz)
                 {
                     int childCount = 1;
                     foreach(BaseItem child in item.Children)

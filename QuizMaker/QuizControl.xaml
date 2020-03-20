@@ -5,9 +5,21 @@
              xmlns:d="http://schemas.microsoft.com/expression/blend/2008" 
              xmlns:local="clr-namespace:QuizMaker"
              mc:Ignorable="d">
+    <UserControl.Resources>
+        <DataTemplate x:Key="ListViewTemplate">
+            <StackPanel Orientation="Horizontal">
+                <Label Content="{Binding Order}"/>
+                <CheckBox IsChecked="{Binding IsCorrect}"/>
+                <TextBox Margin="10, 0, 0, 0" Text="{Binding Content}" MinWidth="80"/>
+                <Image></Image>
+            </StackPanel>
+        </DataTemplate>
+        <local:EnumMatchToBooleanConverter x:Key="enumConverter"/>
+    </UserControl.Resources>
     <Grid>
         <Grid.RowDefinitions>
             <RowDefinition Height="30"/>
+            <RowDefinition Height="Auto"/>
             <RowDefinition Height="*"/>
         </Grid.RowDefinitions>
         <Label Content="{Binding SelectTitle}" FontWeight="Bold"/>
@@ -15,9 +27,29 @@
             <Grid.RowDefinitions>
                 <RowDefinition Height="30"/>
                 <RowDefinition Height="*"/>
+                <RowDefinition Height="30"/>
             </Grid.RowDefinitions>
             <Label Grid.Row="0" Content="문제 입력란"/>
-            <TextBox Grid.Row="1" Margin="5" MaxLines="10" AcceptsReturn="True" MaxLength="300" Text="{Binding CurrentContent}"/>
-        </Grid>        
+            <TextBox Grid.Row="1" Margin="5" MaxLines="10" MinHeight="120" AcceptsReturn="True" TextAlignment="Left" VerticalAlignment="Top"
+                     MaxLength="300" Text="{Binding CurrentContent}" TextChanged="TextBox_TextChanged"/>            
+        </Grid>
+        <Grid Grid.Row="2">
+            <Grid.RowDefinitions>
+                <RowDefinition Height="30"/>
+                <RowDefinition Height="*"/>
+            </Grid.RowDefinitions>
+            <StackPanel Grid.Row="0" Orientation="Horizontal">
+                <Label Content="보기 타입 결정" VerticalAlignment="Center"/>
+                <RadioButton GroupName="ChoiceType" Content="4개" VerticalAlignment="Center" 
+                             IsChecked="{Binding Path=CurrentQuizType, Mode=TwoWay, Converter={StaticResource enumConverter}, ConverterParameter=MultipleChoice_x4}"/>
+                <RadioButton GroupName="ChoiceType" Content="2개" VerticalAlignment="Center"
+                             IsChecked="{Binding Path=CurrentQuizType, Mode=TwoWay, Converter={StaticResource enumConverter}, ConverterParameter=MultipleChoice_x2}"/>
+            </StackPanel>
+            <ListView x:Name="MyListView" Grid.Row="1"
+                      SelectionMode="Single"
+                      ItemsSource="{Binding ListCurrentAnswer}"
+                      ItemTemplate="{StaticResource ListViewTemplate}">
+            </ListView>            
+        </Grid>
     </Grid>
 </UserControl>

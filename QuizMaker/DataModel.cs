@@ -40,11 +40,21 @@ namespace QuizMaker
                 order = value;
                 OnPropertyChanged("Order");
             }
+        }        
+
+        public string Description;        
+
+        public event PropertyChangedEventHandler PropertyChanged;
+        protected virtual void OnPropertyChanged([CallerMemberName] string propertyName = null)
+        {
+            PropertyChanged?.Invoke(this, new PropertyChangedEventArgs(propertyName));
         }
+    }
 
+    [Serializable]
+    public class TreeNode : BaseItem
+    {
         public bool IsExpand { get; set; }
-
-        public string Description;
 
         private ObservableCollection<BaseItem> children = new ObservableCollection<BaseItem>();
         [JsonIgnore]
@@ -57,48 +67,66 @@ namespace QuizMaker
                 OnPropertyChanged("Children");
             }
         }
-
-        public event PropertyChangedEventHandler PropertyChanged;
-        protected virtual void OnPropertyChanged([CallerMemberName] string propertyName = null)
-        {
-            PropertyChanged?.Invoke(this, new PropertyChangedEventArgs(propertyName));
-        }
     }
 
     [Serializable]
-    public class Chapter : BaseItem
+    public class Chapter : TreeNode
     {
         public string SubTitle { get; set; }                
     }
 
     [Serializable]
-    public class Quiz : BaseItem
+    public class Quiz : TreeNode
     {
-        public string Contents { get; set; }
+        public Quiz()
+        {
+            ListAnswer = new List<Answer>();
+        }
+
+        public string Content { get; set; }
 
         public string ParentID { get; set; }
+
+        public QuizType QuizType { get; set; }
+
+        [JsonIgnore]
+        public List<Answer> ListAnswer { get; set; }
     }
 
     [Serializable]
-    public class SubjectiveType : Quiz
+    public class Answer : BaseItem
     {
-        public string Answer;
-    }
+        public string ParentID;
 
-    [Serializable]
-    public class MultipleChoiceType : Quiz
-    {
-        public int Answer;
+        private string content;
+        public string Content
+        {
+            get
+            {
+                return content;
+            }
+            set
+            {
+                content = value;
+                OnPropertyChanged("Content");
+            }
+        }
 
-        public List<Choice> ListChoice;
-    }
+        private bool isCorrect;
+        public bool IsCorrect
+        {
+            get
+            {
+                return isCorrect;
+            }
+            set
+            {
+                isCorrect = value;
+                OnPropertyChanged("IsCorrect");
+            }
+        }       
 
-    [Serializable]
-    public class Choice : BaseItem
-    {
-        public int Index;
-
-        public string Contents;
+        public Uri ImageUri;
     }
 
     [Serializable]

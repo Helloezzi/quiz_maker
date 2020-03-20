@@ -6,15 +6,18 @@ using System.Threading.Tasks;
 
 namespace QuizMaker
 {
-    public enum ProblemType
+    public enum QuizType
     {
-        Subjective,
-        MultipleChoice,
+        Subjective,        
+        MultipleChoice_x4,
+        MultipleChoice_x2,
     }
 
     public enum ElementType
     {
+        None,
         Chapter,
         Quiz,
+        Answer,
     }
 }
